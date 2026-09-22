@@ -1,0 +1,19 @@
+# 本地配置（含高德/百度 API 密钥，切勿提交）
+addr_config.json
+
+# Python 缓存与构建产物
+__pycache__/
+*.pyc
+build/
+dist/
+*.spec
+pack_env/
+
+# 本地开发与打包辅助目录
+guide_work/
+打包/
+Vesion/
+pyinstaller/
+
+# 用户数据与个人文件
+*.kml
