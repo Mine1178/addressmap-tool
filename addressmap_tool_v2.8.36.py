@@ -104,6 +104,7 @@ class Config:
     # POI 检索 API 端点
     GAODE_POI_TEXT   = "https://restapi.amap.com/v3/place/text"
     GAODE_POI_AROUND = "https://restapi.amap.com/v3/place/around"
+    GAODE_DIST       = "https://restapi.amap.com/v3/config/district"
     BAIDU_POI        = "https://api.map.baidu.com/place/v2/search"
 
     # 颜色主题
@@ -446,6 +447,27 @@ def build_query_addr(a1, a2, city, dist, do_clean, do_merge):
     if city and city not in a1:
         a1 = city + a1
     return a1
+
+
+def get_poi_district_units(gkey, city):
+    """通过高德行政区划查询获取城市下属区县列表（POI 区县下钻检索用）；
+    查询失败或无下属区县时回退为城市本身，兼容直辖市、县级市等场景"""
+    try:
+        url = f"{Config.GAODE_DIST}?keywords={url_enc(city)}&subdistrict=1&level=city&extensions=base&key={gkey}"
+        ok, resp = http_get(url, 2)
+        if not ok:
+            return [city]
+        d = json.loads(resp)
+        if d.get("status") != "1":
+            return [city]
+        dists = d.get("districts") or []
+        if not dists:
+            return [city]
+        subs = dists[0].get("districts") or []
+        units = [s.get("name", "") for s in subs if s.get("name")]
+        return units if units else [city]
+    except Exception:
+        return [city]
 
 
 def _clean_single_addr(addr):
@@ -2799,42 +2821,49 @@ class App:
                 if not city or not kw:
                     self.root.after(0, lambda: self.poi_log.insert(tk.END, "[错误] 城市和关键词不能为空\n", "error"))
                     return
-                self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[高德] 行政区划检索: {city} + {kw}\n", "info"))
-                page = 1
-                while not self.poi_stop_flag and page <= 20:
-                    url = f"{Config.GAODE_POI_TEXT}?key={gkey}&keywords={url_enc(kw)}&city={url_enc(city)}&offset=25&page={page}&extensions=all&output=json"
-                    ok, resp = http_get(url, 2)
-                    if not ok:
-                        self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[高德] 请求失败: {resp[:80]}\n", "error"))
-                        break
-                    gaode_count += 1
-                    try:
-                        d = json.loads(resp)
-                        if d.get("status") != "1":
-                            info = d.get("info", "")
-                            self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[高德] 错误: {info}\n", "error"))
+                # 修复：区县下钻 —— 高德同请求参数翻页最多200条，且市级检索仅覆盖市辖区；
+                # 通过行政区划查询获取下属区县，逐区县检索并合并，突破数量上限
+                units = get_poi_district_units(gkey, city)
+                if len(units) > 1:
+                    self.root.after(0, lambda u=units: self.poi_log.insert(tk.END, f"[高德] 已下钻 {len(u)} 个区县逐区检索: {'、'.join(u)}\n", "info"))
+                for unit in units:
+                    if self.poi_stop_flag: break
+                    self.root.after(0, lambda un=unit: self.poi_log.insert(tk.END, f"[高德] 行政区划检索: {un} + {kw}\n", "info"))
+                    page = 1
+                    while not self.poi_stop_flag and page <= 40:
+                        url = f"{Config.GAODE_POI_TEXT}?key={gkey}&keywords={url_enc(kw)}&city={url_enc(unit)}&offset=25&page={page}&extensions=all&output=json"
+                        ok, resp = http_get(url, 2)
+                        if not ok:
+                            self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[高德] 请求失败: {resp[:80]}\n", "error"))
                             break
-                        pois = d.get("pois", [])
-                        if not pois:
-                            self.root.after(0, lambda p=page: self.poi_log.insert(tk.END, f"[高德] 第{p}页无数据，采集结束\n", "info"))
+                        gaode_count += 1
+                        try:
+                            d = json.loads(resp)
+                            if d.get("status") != "1":
+                                info = d.get("info", "")
+                                self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[高德] 错误: {info}\n", "error"))
+                                break
+                            pois = d.get("pois", [])
+                            if not pois:
+                                self.root.after(0, lambda p=page: self.poi_log.insert(tk.END, f"[高德] 第{p}页无数据，采集结束\n", "info"))
+                                break
+                            for p in pois:
+                                loc = p.get("location", "")
+                                lng, lat = 0, 0
+                                if loc and "," in loc:
+                                    try: lng, lat = map(float, loc.split(","))
+                                    except: pass
+                                raw_results.append({
+                                    "name": p.get("name", ""), "address": p.get("address", ""),
+                                    "tel": p.get("tel", ""), "type": p.get("type", ""),
+                                    "gcj_lng": lng, "gcj_lat": lat, "source": "高德"
+                                })
+                            self.root.after(0, lambda p=page, c=len(pois): self.poi_log.insert(tk.END, f"[高德] 第{p}页: {c}条\n", "info"))
+                            if len(pois) < 25: break
+                        except Exception as e:
+                            self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[高德] 解析异常: {e}\n", "error"))
                             break
-                        for p in pois:
-                            loc = p.get("location", "")
-                            lng, lat = 0, 0
-                            if loc and "," in loc:
-                                try: lng, lat = map(float, loc.split(","))
-                                except: pass
-                            raw_results.append({
-                                "name": p.get("name", ""), "address": p.get("address", ""),
-                                "tel": p.get("tel", ""), "type": p.get("type", ""),
-                                "gcj_lng": lng, "gcj_lat": lat, "source": "高德"
-                            })
-                        self.root.after(0, lambda p=page, c=len(pois): self.poi_log.insert(tk.END, f"[高德] 第{p}页: {c}条\n", "info"))
-                        if len(pois) < 25: break
-                    except Exception as e:
-                        self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[高德] 解析异常: {e}\n", "error"))
-                        break
-                    page += 1; time.sleep(0.3)
+                        page += 1; time.sleep(0.3)
             else:
                 center = self.poi_center.get().strip()
                 kw = self.poi_kw_around.get().strip()
@@ -2850,7 +2879,7 @@ class App:
                 clng, clat = res["gcj_lng"], res["gcj_lat"]
                 self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[高德] 中心坐标: {clng},{clat}\n", "info"))
                 page = 1
-                while not self.poi_stop_flag and page <= 20:
+                while not self.poi_stop_flag and page <= 40:
                     url = f"{Config.GAODE_POI_AROUND}?key={gkey}&location={clng},{clat}&keywords={url_enc(kw)}&radius={radius}&offset=25&page={page}&extensions=all&output=json"
                     ok, resp = http_get(url, 2)
                     if not ok:
@@ -2901,50 +2930,53 @@ class App:
                 for ek in expand_kws:
                     if self.poi_stop_flag: break
                     self.root.after(0, lambda k=ek: self.poi_log.insert(tk.END, f"[突破限制] 扩展关键词: {k}\n", "info"))
-                    ep = 1
-                    while not self.poi_stop_flag and ep <= 10:  # 每个扩展词最多10页（250条）
-                        if mode == "district":
-                            eurl = f"{Config.GAODE_POI_TEXT}?key={gkey}&keywords={url_enc(ek)}&city={url_enc(city)}&offset=25&page={ep}&extensions=all&output=json"
-                        else:
-                            eurl = f"{Config.GAODE_POI_AROUND}?key={gkey}&location={clng},{clat}&keywords={url_enc(ek)}&radius={radius}&offset=25&page={ep}&extensions=all&output=json"
-                        eok, eresp = http_get(eurl, 2)
-                        if not eok:
-                            self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[突破限制] 扩展词请求失败\n", "error"))
-                            break
-                        gaode_count += 1
-                        try:
-                            ed = json.loads(eresp)
-                            if ed.get("status") != "1": break
-                            epois = ed.get("pois", [])
-                            if not epois: break
-                            for p in epois:
-                                loc = p.get("location", "")
-                                lng, lat = 0, 0
-                                if loc and "," in loc:
-                                    try: lng, lat = map(float, loc.split(","))
-                                    except: pass
-                                # 与已有结果坐标去重（距离 < 50 米视为重复）
-                                is_dup = False
-                                for existing in raw_results:
-                                    if not existing.get("gcj_lng") or not existing.get("gcj_lat"):
-                                        continue
-                                    dx = abs(lng - existing["gcj_lng"]) * 111000 * math.cos(math.radians(lat))
-                                    dy = abs(lat - existing["gcj_lat"]) * 111000
-                                    if math.sqrt(dx*dx + dy*dy) < 50:
-                                        is_dup = True
-                                        expand_dup += 1
-                                        break
-                                if not is_dup:
-                                    raw_results.append({
-                                        "name": p.get("name", ""), "address": p.get("address", ""),
-                                        "tel": p.get("tel", ""), "type": p.get("type", ""),
-                                        "gcj_lng": lng, "gcj_lat": lat, "source": "高德(扩展)"
-                                    })
-                            if len(epois) < 25: break
-                        except Exception as ee:
-                            self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[突破限制] 扩展词解析异常: {ee}\n", "error"))
-                            break
-                        ep += 1; time.sleep(0.3)
+                    for unit in (units if mode == "district" else [""]):
+                        if self.poi_stop_flag: break
+                        ep = 1
+                        while not self.poi_stop_flag and ep <= 40:  # 每个扩展词+区县最多40页（1000条）
+                            if mode == "district":
+                                eurl = f"{Config.GAODE_POI_TEXT}?key={gkey}&keywords={url_enc(ek)}&city={url_enc(unit)}&offset=25&page={ep}&extensions=all&output=json"
+                            else:
+                                eurl = f"{Config.GAODE_POI_AROUND}?key={gkey}&location={clng},{clat}&keywords={url_enc(ek)}&radius={radius}&offset=25&page={ep}&extensions=all&output=json"
+                            eok, eresp = http_get(eurl, 2)
+                            if not eok:
+                                self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[突破限制] 扩展词请求失败\n", "error"))
+                                break
+                            gaode_count += 1
+                            try:
+                                ed = json.loads(eresp)
+                                if ed.get("status") != "1": break
+                                epois = ed.get("pois", [])
+                                if not epois: break
+                                for p in epois:
+                                    loc = p.get("location", "")
+                                    lng, lat = 0, 0
+                                    if loc and "," in loc:
+                                        try: lng, lat = map(float, loc.split(","))
+                                        except: pass
+                                    # 与已有结果坐标去重（距离 < 50 米视为重复）
+                                    is_dup = False
+                                    for existing in raw_results:
+                                        if not existing.get("gcj_lng") or not existing.get("gcj_lat"):
+                                            continue
+                                        dx = abs(lng - existing["gcj_lng"]) * 111000 * math.cos(math.radians(lat))
+                                        dy = abs(lat - existing["gcj_lat"]) * 111000
+                                        if math.sqrt(dx*dx + dy*dy) < 50:
+                                            is_dup = True
+                                            expand_dup += 1
+                                            break
+                                    if not is_dup:
+                                        raw_results.append({
+                                            "name": p.get("name", ""), "address": p.get("address", ""),
+                                            "tel": p.get("tel", ""), "type": p.get("type", ""),
+                                            "gcj_lng": lng, "gcj_lat": lat, "source": "高德(扩展)"
+                                        })
+                                if len(epois) < 25: break
+                            except Exception as ee:
+                                self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[突破限制] 扩展词解析异常: {ee}\n", "error"))
+                                break
+                            ep += 1; time.sleep(0.3)
+                        if self.poi_stop_flag: break
                     if self.poi_stop_flag: break
                 self.root.after(0, lambda: self.poi_log.insert(tk.END, f"[突破限制] 关键词拆分检索完成，当前共{len(raw_results)}条（去重{expand_dup}条）\n", "info"))
 
@@ -2964,7 +2996,7 @@ class App:
             if need_baidu:
                 self.root.after(0, lambda: self.poi_log.insert(tk.END, "[百度] 开始补缺检索...\n", "baidu"))
                 bn = 0
-                while not self.poi_stop_flag and bn < 20:
+                while not self.poi_stop_flag and bn < 40:
                     if mode == "district":
                         url = f"{Config.BAIDU_POI}?query={url_enc(kw)}&region={url_enc(city)}&output=json&ak={bak}&page_size=10&page_num={bn}&scope=2"
                     else:
