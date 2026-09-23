@@ -38,7 +38,7 @@ def _get_pil():
 # ═══════════════════════════════════════════════════════════
 class Config:
     APP_NAME      = "地址坐标转换工具"
-    VERSION       = "2.8.36"
+    VERSION       = "2.8.37"
     CONFIG_FILE   = "addr_config.json"
     ABNORMAL_CLR  = "FFFF00"
 
