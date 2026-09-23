@@ -32,7 +32,7 @@ pip install openpyxl Pillow
 2. **启动程序**
 
    ```bash
-   python addressmap_tool_v2.8.38.py
+   python addressmap_tool_v2.8.39.py
    ```
 
 3. **配置密钥**：首次启动在「API密钥配置」页填写高德 Key 与百度 AK，保存后写入本地 `addr_config.json`（该文件已被 .gitignore 排除，不会提交到仓库）
