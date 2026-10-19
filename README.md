@@ -145,6 +145,14 @@ python addressmap_tool_v2.8.66.py
 
 **如果这个工具帮你少加了班，欢迎请作者喝杯咖啡 ☕**
 
+<br>
+
+<img src="assets/alipay.jpg" width="300" alt="支付宝赞助">
+&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="assets/wechatpay.jpg" width="300" alt="微信赞助">
+
+<br>
+
 Made with ❤️ by 通信勘察打工人
 
 </div>
