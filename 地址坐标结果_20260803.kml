@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>地址坐标转换结果</name>
+    <Style id="redPin">
+      <IconStyle>
+        <Icon><href>http://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png</href></Icon>
+      </IconStyle>
+    </Style>
+    <Placemark>
+      <name>云南省曲靖市会泽县通宝路469号</name>
+      <description><![CDATA[原始地址：云南省曲靖市会泽县通宝路469号
+GCJ-02：103.285754,26.414071
+WGS-84：103.283844,26.417543
+精度：门牌号 | 来源：高德
+Excel行号：第2行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.283844,26.417543,0</coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>云南省曲靖市会泽县上村乡大松树村</name>
+      <description><![CDATA[原始地址：云南省曲靖市会泽县上村乡大松树村
+GCJ-02：103.568782,26.123072
+WGS-84：103.566941,26.126573
+精度：村庄 | 来源：高德
+Excel行号：第3行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.566941,26.126573,0</coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>云南省曲靖市会泽县乐业镇乐业村</name>
+      <description><![CDATA[原始地址：云南省曲靖市会泽县乐业镇乐业村
+GCJ-02：103.469537,26.609278
+WGS-84：103.467435,26.61272
+精度：村庄 | 来源：高德
+Excel行号：第4行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.467435,26.61272,0</coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>云南省曲靖市会泽县五星乡铅厂村</name>
+      <description><![CDATA[原始地址：云南省曲靖市会泽县五星乡铅厂村
+GCJ-02：103.262621,26.548423
+WGS-84：103.260742,26.551951
+精度：村庄 | 来源：高德
+Excel行号：第5行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.260742,26.551951,0</coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>云南省曲靖市会泽县钟屏路436号</name>
+      <description><![CDATA[原始地址：云南省曲靖市会泽县钟屏路436号
+GCJ-02：103.292373,26.409299
+WGS-84：103.29045,26.412761
+精度：门址 | 来源：高德
+Excel行号：第6行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.29045,26.412761,0</coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>云南省曲靖市会泽县会泽农村商业银行(大井支行)</name>
+      <description><![CDATA[原始地址：云南省曲靖市会泽县大井镇井田社区
+GCJ-02：103.822375,26.469925
+WGS-84：103.820358,26.473511
+精度：兴趣点 | 来源：高德
+Excel行号：第7行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.820358,26.473511,0</coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>云南省曲靖市会泽县大桥乡大桥村</name>
+      <description><![CDATA[原始地址：云南省曲靖市会泽县大桥乡大桥村
+GCJ-02：103.334079,26.683165
+WGS-84：103.33204,26.686604
+精度：村庄 | 来源：高德
+Excel行号：第8行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.33204,26.686604,0</coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>云南省曲靖市会泽县大海乡绿荫塘村</name>
+      <description><![CDATA[原始地址：云南省曲靖市会泽县大海乡绿荫塘村
+GCJ-02：103.232668,26.290196
+WGS-84：103.230813,26.293628
+精度：村庄 | 来源：高德
+Excel行号：第9行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.230813,26.293628,0</coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>云南省曲靖市会泽县乐业镇</name>
+      <description><![CDATA[原始地址：会泽县乐业镇
+GCJ-02：103.548608,26.712628
+WGS-84：103.546714,26.716294
+精度：乡镇 | 来源：高德
+Excel行号：第10行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.546714,26.716294,0</coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>云南省曲靖市会泽县会泽农村商业银行(宝云支行)</name>
+      <description><![CDATA[原始地址：云南省曲靖市会泽县会烟街124号
+GCJ-02：103.315076,26.42352
+WGS-84：103.313097,26.42695
+精度：兴趣点 | 来源：高德
+Excel行号：第11行]]></description>
+      <styleUrl>#redPin</styleUrl>
+      <Point><coordinates>103.313097,26.42695,0</coordinates></Point>
+    </Placemark>
+  </Document>
+</kml>

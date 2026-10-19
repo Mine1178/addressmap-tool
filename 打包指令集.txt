@@ -1,0 +1,15 @@
+# 1. 创建虚拟环境
+python -m venv pack_env
+
+# 2. 激活虚拟环境
+pack_env\Scripts\activate
+
+# 3. 安装依赖（只装3个）
+pip install openpyxl ttkbootstrap pyinstaller
+
+# 4. 执行打包（注意：--clean 后面没有 --）
+pyinstaller -F -w --clean --name="地址标准地址转换工具" address_standardizer_v4.py
+
+以后重新打包
+pack_env\Scripts\activate
+pyinstaller -F -w --clean --icon="app.ico" --add-data "app.png;." addressmap_tool_v2.8.58.py
