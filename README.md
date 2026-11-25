@@ -214,3 +214,15 @@ A：工具按返回结果匹配到的行政区划级别（省 / 市 / 区县 / �
 Made with ❤️ by 通信勘察打工人
 
 </div>
+
+---
+
+## 🧰 更多 Windows 开源工具
+
+- [QTranslate](https://github.com/Mine1178/QTranslate) — 选中即译的划词翻译，20MB 安装包
+- [SealMaker](https://github.com/Mine1178/SealMaker) — 圆形/椭圆电子印章，508 DPI 透明导出
+- [重命名大师 RenameMaster](https://github.com/Mine1178/renamemaster) — 照片/PDF/表格批量改名 + 图片压缩
+- [Word 表格美化](https://github.com/Mine1178/Word-table-beautifier) — 外粗内细、五号宋体、表头跨页重复
+- [狗头军师助手](https://github.com/Mine1178/goutoujunshi-assistant) — 聊天话术、对象档案、话术库
+
+> 全部免费开源、Windows 本地优先。觉得有用，给对应仓库点个 ⭐ 就是最直接的支持。
